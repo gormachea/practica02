@@ -11,6 +11,7 @@ library(httr)
 library(XML)
 
 url <- "https://www.mediawiki.org/wiki/MediaWiki"
+
 #Pregunta 1
 
 #1.1
@@ -20,7 +21,7 @@ url <- "https://www.mediawiki.org/wiki/MediaWiki"
   #Extraer el HTML como texto
   html_raw <- content(respuesta, as = "text", encoding = "UTF-8")
 
-  #Parsear el HTML a un documento XML
+  #Parsear el HTML a un documento XML el cual se llama html_doc
   html_doc <- htmlTreeParse(html_raw, useInternalNodes = TRUE)
 
   #Ver la clase del objeto
@@ -32,7 +33,29 @@ titulo <- xpathSApply(html_doc, "//title", xmlValue)
 titulo
 
 #1.3
+  #Extraer Texto del enlace
+  textos <- xpathSApply(html_doc, "//a", xmlValue)
+  
+  #Extraer los URL
+  urls <- xpathSApply(html_doc, "//a/@href")
+  
+  #handle nules
+  nulos_texto <- sapply(textos, is.null)
+  nulos_url   <- sapply(urls, is.null)
+  
+  textos[nulos_texto] <- NA
+  urls[nulos_url]     <- NA
+  
+  textos <- unlist(textos)
+  urls   <- unlist(urls)
 
+  enlaces <- data.frame(
+  texto = textos,
+  url   = urls,
+  stringsAsFactors = FALSE
+)
+
+head(enlaces)
 
 ```
 

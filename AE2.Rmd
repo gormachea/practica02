@@ -1,6 +1,6 @@
 ---
-title: "AE2 Marco"
-author: "Marco"
+title: "AE2"
+author: "Marco, Celeste, Guillermo"
 date: "2026-01-12"
 output: html_document
 ---

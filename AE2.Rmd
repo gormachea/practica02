@@ -57,6 +57,40 @@ titulo
 
 head(enlaces)
 
+#1.4
+
+# Paso 1-2: Contar y convertir a dataframe
+conteo_urls <- as.data.frame(table(enlaces$url))
+
+# Paso 3: Renombrar
+names(conteo_urls) <- c("url", "frecuencia")
+
+# Paso 4: Unir con textos
+tabla_enlaces <- merge(enlaces, conteo_urls, by = "url")
+
+# Paso 5: Eliminar duplicados
+tabla_enlaces_unicos <- tabla_enlaces[!duplicated(tabla_enlaces$url), ]
+
+# Paso 6: Ordenar
+tabla_enlaces_unicos <- tabla_enlaces_unicos[order(-tabla_enlaces_unicos$frecuencia), ]
+
+# Paso 7: Seleccionar columnas
+tabla_final <- tabla_enlaces_unicos[, c("texto", "url", "frecuencia")]
+
+# Paso 8: Renumerar filas desde 1
+rownames(tabla_final) <- 1:nrow(tabla_final)
+
+# Ver resultado
+tabla_final
+
+# Ver top 10 más frecuentes
+head(tabla_final, 10)
+
+# Verificación
+cat("Suma de frecuencias:", sum(tabla_final$frecuencia), "\n")
+cat("Total enlaces originales:", nrow(enlaces), "\n")
+cat("¿Coinciden?", sum(tabla_final$frecuencia) == nrow(enlaces), "\n")
+
 ```
 
 

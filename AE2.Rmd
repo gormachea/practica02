@@ -109,9 +109,6 @@ kable(resumen_verificacion, caption = "Verificación de Resultados")
 distribucion <- as.data.frame(table(tabla_final$frecuencia))
 names(distribucion) <- c("Frecuencia", "Cantidad_URLs")
 kable(distribucion, caption = "Distribución de Frecuencias")
-<<<<<<< HEAD
-```
-=======
 ```
 ```{r}
 #1.5
@@ -142,4 +139,3 @@ tabla_final$status_code <- sapply(tabla_final$url_normalizada, comprobar_estado)
 
 kable((tabla_final),caption = "Enlaces con estado HTTP")
 ```
->>>>>>> 608edc83af96d279ed9e0e820bb1ca2b4e8b2691

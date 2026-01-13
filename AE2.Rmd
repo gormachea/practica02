@@ -5,14 +5,17 @@ date: "2026-01-12"
 output: html_document
 ---
 
-```{r}
-
+```{r carga_librerias}
 library(httr)
 library(XML)
+library(knitr)
+library(DT)
+```
 
+
+# Pregunta 1
+```{r p1_1}
 url <- "https://www.mediawiki.org/wiki/MediaWiki"
-
-#Pregunta 1
 
 #1.1
   #Descargar la página
@@ -26,18 +29,24 @@ url <- "https://www.mediawiki.org/wiki/MediaWiki"
 
   #Ver la clase del objeto
   class(html_doc)
-  
-#1.2
+```
 
+
+## 1.2
+```{r p1_2}
 titulo <- xpathSApply(html_doc, "//title", xmlValue)
 titulo
 
-#1.3
+```
+
+
+## 1.3
+```{r p1_3}
   #Extraer Texto del enlace
   textos <- xpathSApply(html_doc, "//a", xmlValue)
   
   #Extraer los URL
-  urls <- xpathSApply(html_doc, "//a", xmlGetAttr, 'href')
+  urls <- xpathSApply(html_doc, "//a/@href")
   
   #handle nules
   nulos_texto <- sapply(textos, is.null)
@@ -49,61 +58,68 @@ titulo
   textos <- unlist(textos)
   urls   <- unlist(urls)
 
+  enlaces <- data.frame(
+  texto = textos,
+  url   = urls,
+  stringsAsFactors = FALSE
+)
 
-head(enlaces)
-
+datatable(head(enlaces))
 ```
 
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## 1.4
 
 ```{r}
-  #Definimos el dominio principal con 
-  dominio_principal <- "https://www.mediawiki.org"
-  
-  #Separamos la cantidad de URL que apuntan hacia un destino interno de las que apuntan hacia un destino externo.
-  df_clasificado <- enlaces %>%
-  mutate(
-    tipo_enlace = case_when(
-      # URLs relativas → internas
-      !str_detect(url, "^https?://") ~ "Interno",
+# Paso 1-2: Contar y convertir a dataframe
+conteo_urls <- as.data.frame(table(enlaces$url))
 
-      # URLs absolutas que apuntan al dominio principal → internas
-      str_detect(url, fixed(dominio_principal)) ~ "Interno",
+# Paso 3: Renombrar
+names(conteo_urls) <- c("url", "frecuencia")
 
-      # URLs absolutas a otros dominios → externas
-      TRUE ~ "Externo"
-    )
-  )
+# Paso 4: Unir con textos
+tabla_enlaces <- merge(enlaces, conteo_urls, by = "url")
 
-  #Hacemos una suma total de ambos tipos
-  df_resumen <- df_clasificado %>%
-  count(tipo_enlace, name = "total_enlaces")
-  
-  #Creamos un grafico de barras que indique los enlaces internos y externos.
-  ggplot(df_resumen, aes(x = tipo_enlace, y = total_enlaces, fill = tipo_enlace)) +
-  geom_col(width = 0.6) +
-  labs(
-    title = "Distribución de enlaces internos vs externos",
-    x = "Tipo de enlace",
-    y = "Cantidad total de enlaces"
-  ) +
-  theme_minimal() +
-  theme(
-    legend.position = "none"
-  )
+# Paso 5: Eliminar duplicados
+tabla_enlaces_unicos <- tabla_enlaces[!duplicated(tabla_enlaces$url), ]
+
+# Paso 6: Ordenar
+tabla_enlaces_unicos <- tabla_enlaces_unicos[order(-tabla_enlaces_unicos$frecuencia), ]
+
+# Paso 7: Seleccionar columnas
+tabla_final <- tabla_enlaces_unicos[, c("texto", "url", "frecuencia")]
+
+# Paso 8: Renumerar filas desde 1
+rownames(tabla_final) <- 1:nrow(tabla_final)
+
+# Ver resultado
+tabla_final
+
+# Ver top 10 más frecuentes
+head(tabla_final, 10)
+
+# Verificación
+cat("Suma de frecuencias:", sum(tabla_final$frecuencia), "\n")
+cat("Total enlaces originales:", nrow(enlaces), "\n")
+cat("¿Coinciden?", sum(tabla_final$frecuencia) == nrow(enlaces), "\n")
+
+
+
+# ============================================
+# TABLAS FORMATEADAS (para R Markdown)
+# ============================================
+
+
+# Top 10 enlaces
+kable(head(tabla_final, 10), caption = "Top 10 Enlaces más Frecuentes")
+# Resumen de verificación
+resumen_verificacion <- data.frame(
+  Metrica = c("Total URLs únicas", "Suma de frecuencias", "URLs con frecuencia > 1", "URLs únicas (frecuencia = 1)"),
+  Valor = c(nrow(tabla_final), sum(tabla_final$frecuencia), sum(tabla_final$frecuencia > 1), sum(tabla_final$frecuencia == 1))
+)
+kable(resumen_verificacion, caption = "Verificación de Resultados")
+
+# Distribución de frecuencias
+distribucion <- as.data.frame(table(tabla_final$frecuencia))
+names(distribucion) <- c("Frecuencia", "Cantidad_URLs")
+kable(distribucion, caption = "Distribución de Frecuencias")
 ```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

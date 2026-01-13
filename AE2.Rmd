@@ -37,7 +37,7 @@ titulo
   textos <- xpathSApply(html_doc, "//a", xmlValue)
   
   #Extraer los URL
-  urls <- xpathSApply(html_doc, "//a/@href")
+  urls <- xpathSApply(html_doc, "//a", xmlGetAttr, 'href')
   
   #handle nules
   nulos_texto <- sapply(textos, is.null)
@@ -49,11 +49,6 @@ titulo
   textos <- unlist(textos)
   urls   <- unlist(urls)
 
-  enlaces <- data.frame(
-  texto = textos,
-  url   = urls,
-  stringsAsFactors = FALSE
-)
 
 head(enlaces)
 
@@ -66,8 +61,41 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+```{r}
+  #Definimos el dominio principal con 
+  dominio_principal <- "https://www.mediawiki.org"
+  
+  #Separamos la cantidad de URL que apuntan hacia un destino interno de las que apuntan hacia un destino externo.
+  df_clasificado <- enlaces %>%
+  mutate(
+    tipo_enlace = case_when(
+      # URLs relativas → internas
+      !str_detect(url, "^https?://") ~ "Interno",
+
+      # URLs absolutas que apuntan al dominio principal → internas
+      str_detect(url, fixed(dominio_principal)) ~ "Interno",
+
+      # URLs absolutas a otros dominios → externas
+      TRUE ~ "Externo"
+    )
+  )
+
+  #Hacemos una suma total de ambos tipos
+  df_resumen <- df_clasificado %>%
+  count(tipo_enlace, name = "total_enlaces")
+  
+  #Creamos un grafico de barras que indique los enlaces internos y externos.
+  ggplot(df_resumen, aes(x = tipo_enlace, y = total_enlaces, fill = tipo_enlace)) +
+  geom_col(width = 0.6) +
+  labs(
+    title = "Distribución de enlaces internos vs externos",
+    x = "Tipo de enlace",
+    y = "Cantidad total de enlaces"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none"
+  )
 ```
 
 ## Including Plots

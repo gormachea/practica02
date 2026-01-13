@@ -139,3 +139,71 @@ tabla_final$status_code <- sapply(tabla_final$url_normalizada, comprobar_estado)
 
 kable((tabla_final),caption = "Enlaces con estado HTTP")
 ```
+
+## 2.1
+```{r p2_1}
+# Inicialmente clasificaremos las url si son absolutas o relativas y obtendremos la frecuencia con la que aparecen.
+df_abs_rel <- enlaces %>%
+  mutate(
+    tipo_url = if_else(
+      str_detect(url, "^https?://"),
+      "URL absoluta",
+      "URL relativa"
+    )
+  ) %>%
+  count(tipo_url, name = "frecuencia")
+
+# Luego generamos la gráfica de barras donde separa la frecuencia de URL absoluta y relativa.
+ggplot(df_abs_rel, aes(x = tipo_url, y = frecuencia, fill = tipo_url)) +
+  geom_col(width = 0.6) +
+  labs(
+    title = "Frecuencia de aparición de URLs",
+    x = "Tipo de URL",
+    y = "Cantidad de enlaces"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## 2.2
+```{r p2_2}
+
+# Definimos el dominio raiz o principal
+
+dominio_principal <- "https://www.mediawiki.org"
+
+# Continuamos clasificando los enlaces que tenemos entre los que apuntan hacia la misma URL y las que apuntan hacia un destino externo.
+
+df_ext_int <- enlaces %>%
+  mutate(
+    tipo_enlace = case_when(
+      # URLs relativas → internas
+      !str_detect(url, "^https?://") ~ "Interno",
+
+      # URLs absolutas que apuntan al dominio principal → internas
+      str_detect(url, fixed(dominio_principal)) ~ "Interno",
+
+      # URLs absolutas a otros dominios → externas
+      TRUE ~ "Externo"
+    )
+  )
+
+# Ahora hacemos la suma de la cantidad de enlaces por tipo
+
+df_resumen_tipo <- df_ext_int %>%
+  count(tipo_enlace, name = "total_enlaces")
+
+# Finalmente generamos el gráfico de barras solicitado.
+
+ggplot(df_resumen_tipo, aes(x = tipo_enlace, y = total_enlaces, fill = tipo_enlace)) +
+  geom_col(width = 0.6) +
+  labs(
+    title = "Distribución de enlaces internos vs externos",
+    x = "Tipo de enlace",
+    y = "Cantidad total de enlaces"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none"
+  )
+```

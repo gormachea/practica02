@@ -91,6 +91,27 @@ cat("Suma de frecuencias:", sum(tabla_final$frecuencia), "\n")
 cat("Total enlaces originales:", nrow(enlaces), "\n")
 cat("¿Coinciden?", sum(tabla_final$frecuencia) == nrow(enlaces), "\n")
 
+
+
+# ============================================
+# TABLAS FORMATEADAS (para R Markdown)
+# ============================================
+
+library(knitr)
+
+# Top 10 enlaces
+kable(head(tabla_final, 10), caption = "Top 10 Enlaces más Frecuentes")
+# Resumen de verificación
+resumen_verificacion <- data.frame(
+  Metrica = c("Total URLs únicas", "Suma de frecuencias", "URLs con frecuencia > 1", "URLs únicas (frecuencia = 1)"),
+  Valor = c(nrow(tabla_final), sum(tabla_final$frecuencia), sum(tabla_final$frecuencia > 1), sum(tabla_final$frecuencia == 1))
+)
+kable(resumen_verificacion, caption = "Verificación de Resultados")
+
+# Distribución de frecuencias
+distribucion <- as.data.frame(table(tabla_final$frecuencia))
+names(distribucion) <- c("Frecuencia", "Cantidad_URLs")
+kable(distribucion, caption = "Distribución de Frecuencias")
 ```
 
 

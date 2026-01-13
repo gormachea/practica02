@@ -91,19 +91,6 @@ tabla_final <- tabla_enlaces_unicos[, c("texto", "url", "frecuencia")]
 # Paso 8: Renumerar filas desde 1
 rownames(tabla_final) <- 1:nrow(tabla_final)
 
-# Ver resultado
-tabla_final
-
-# Ver top 10 más frecuentes
-head(tabla_final, 10)
-
-# Verificación
-cat("Suma de frecuencias:", sum(tabla_final$frecuencia), "\n")
-cat("Total enlaces originales:", nrow(enlaces), "\n")
-cat("¿Coinciden?", sum(tabla_final$frecuencia) == nrow(enlaces), "\n")
-
-
-
 # ============================================
 # TABLAS FORMATEADAS (para R Markdown)
 # ============================================
@@ -122,4 +109,33 @@ kable(resumen_verificacion, caption = "Verificación de Resultados")
 distribucion <- as.data.frame(table(tabla_final$frecuencia))
 names(distribucion) <- c("Frecuencia", "Cantidad_URLs")
 kable(distribucion, caption = "Distribución de Frecuencias")
+```
+```{r}
+#1.5
+
+normalizar_url <- function(u) {
+  if (is.na(u) || u == "") return(NA)
+  if (grepl("^#", u)) return(url)
+  if (grepl("^https?://", u)) return(u)
+  if (grepl("^//", u)) return(paste0("https:", u))
+  if (grepl("^/", u)) return(paste0("https://www.mediawiki.org", u))
+  return(NA)
+}
+
+comprobar_estado <- function(u) {
+  if (is.na(u)) return(NA)
+  tryCatch({
+    res <- HEAD(u, timeout(5))
+    Sys.sleep(1)
+    return(status_code(res))
+  }, error = function(e) {
+    Sys.sleep(1)
+    return(NA)
+  })
+}
+
+tabla_final$url_normalizada <- sapply(tabla_final$url, normalizar_url)
+tabla_final$status_code <- sapply(tabla_final$url_normalizada, comprobar_estado)
+
+kable((tabla_final),caption = "Enlaces con estado HTTP")
 ```

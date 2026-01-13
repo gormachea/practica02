@@ -10,6 +10,9 @@ library(httr)
 library(XML)
 library(knitr)
 library(DT)
+library(dplyr)
+library(ggplot2)
+library(stringr)
 ```
 
 
@@ -206,4 +209,35 @@ ggplot(df_resumen_tipo, aes(x = tipo_enlace, y = total_enlaces, fill = tipo_enla
   theme(
     legend.position = "none"
   )
+```
+
+## 2.3
+```{r p2_3}
+
+# Inicialmente realizamos el conteo de cada uno de los codigos de estado.
+
+df_status <- tabla_final %>%
+  count(status_code, name = "frecuencia") %>%
+  mutate(
+    porcentaje = frecuencia / sum(frecuencia) * 100,
+    etiqueta = paste0(status_code, " (", round(porcentaje, 1), "%)")
+  )
+
+# Generamos el gráfico de pastel que indica los porcentajes de peticiones.
+
+pie_chart <- ggplot(df_status, aes(x = "", y = frecuencia, fill = factor(status_code))) +
+  geom_col(width = 1, color = "red") +
+  coord_polar(theta = "y") +
+  geom_text(aes(label = etiqueta), position = position_stack(vjust = 0.5), size = 4) +
+  labs(
+    title = "Distribución de Status de Enlaces",
+    fill = "Status"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    panel.grid = element_blank()
+  )
+pie_chart
 ```

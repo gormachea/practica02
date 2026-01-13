@@ -5,14 +5,17 @@ date: "2026-01-12"
 output: html_document
 ---
 
-```{r}
-
+```{r carga_librerias}
 library(httr)
 library(XML)
+library(knitr)
+library(DT)
+```
 
+
+# Pregunta 1
+```{r p1_1}
 url <- "https://www.mediawiki.org/wiki/MediaWiki"
-
-#Pregunta 1
 
 #1.1
   #Descargar la página
@@ -26,13 +29,19 @@ url <- "https://www.mediawiki.org/wiki/MediaWiki"
 
   #Ver la clase del objeto
   class(html_doc)
-  
-#1.2
+```
 
+
+## 1.2
+```{r p1_2}
 titulo <- xpathSApply(html_doc, "//title", xmlValue)
 titulo
 
-#1.3
+```
+
+
+## 1.3
+```{r p1_3}
   #Extraer Texto del enlace
   textos <- xpathSApply(html_doc, "//a", xmlValue)
   
@@ -55,10 +64,12 @@ titulo
   stringsAsFactors = FALSE
 )
 
-head(enlaces)
+datatable(head(enlaces))
+```
 
-#1.4
+## 1.4
 
+```{r}
 # Paso 1-2: Contar y convertir a dataframe
 conteo_urls <- as.data.frame(table(enlaces$url))
 
@@ -97,7 +108,6 @@ cat("¿Coinciden?", sum(tabla_final$frecuencia) == nrow(enlaces), "\n")
 # TABLAS FORMATEADAS (para R Markdown)
 # ============================================
 
-library(knitr)
 
 # Top 10 enlaces
 kable(head(tabla_final, 10), caption = "Top 10 Enlaces más Frecuentes")
@@ -113,24 +123,3 @@ distribucion <- as.data.frame(table(tabla_final$frecuencia))
 names(distribucion) <- c("Frecuencia", "Cantidad_URLs")
 kable(distribucion, caption = "Distribución de Frecuencias")
 ```
-
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
